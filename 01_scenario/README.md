@@ -247,6 +247,10 @@ password: harboradminpassword
 Grafana: https://grafana.seccamp.com:8082
 ## ログイン情報
 k view-secret -n monitoring grafana
+
+# その他
+ArgoCD: https://argocd.seccamp.com:8082
+Hubble: https://hubble.seccamp.com:8082
 ```
 
 ### 5.3 前任者からの引き継ぎドキュメント

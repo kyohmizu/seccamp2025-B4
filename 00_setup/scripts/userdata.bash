@@ -15,7 +15,6 @@ export HOME=/root
 export KUBECONFIG=/root/.kube/config
 
 mkdir -p /root/logs
-mkdir -p /root/attack
 mkdir -p /root/gitlab
 
 PRIVATE_IP=$(hostname -I | awk '{print $1}')
@@ -1012,7 +1011,7 @@ update-ca-certificates
 mkdir -p /etc/docker/certs.d/harbor.seccamp.com
 cp /usr/local/share/ca-certificates/extra/seccamp-ca.crt /etc/docker/certs.d/harbor.seccamp.com/
 
-curl -L -O https://gist.githubusercontent.com/kyohmizu/7360421adffcf36a6231af5648db49f3/raw/05cc28711738d152e4aeef394909c291dc57a3a5/kind-load-certfile.sh
+curl -L -O https://raw.githubusercontent.com/kyohmizu/seccamp2025-B4/refs/heads/main/00_setup/scripts/kind-load-certfile.sh
 chmod +x ./kind-load-certfile.sh
 ./kind-load-certfile.sh /usr/local/share/ca-certificates/extra/seccamp-ca.crt > /root/logs/kind-load-certfile.log 2>&1
 
