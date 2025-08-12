@@ -1,0 +1,33 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: frontend
+  namespace: seccamp-app
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: frontend
+  template:
+    metadata:
+      labels:
+        app: frontend
+    spec:
+      containers:
+      - name: frontend
+        image: harbor.seccamp.com/seccamp2025/seccamp-frontend:v1.0
+        imagePullPolicy: Always
+        workingDir: /app
+        ports:
+        - containerPort: 3000
+        env:
+        - name: NODE_ENV
+          value: "production"
+        volumeMounts:
+        - name: app-src
+          mountPath: /app
+      imagePullSecrets:
+      - name: harbor-cred
+      volumes:
+      - name: app-src
+        emptyDir: {}

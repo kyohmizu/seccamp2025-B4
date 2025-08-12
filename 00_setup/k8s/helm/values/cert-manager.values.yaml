@@ -1,0 +1,32 @@
+global:
+  rbac:
+    create: true
+
+crds:
+  enabled: true
+
+resources:
+  requests:
+    cpu: 30m
+    memory: 64Mi
+  limits:
+    memory: 64Mi
+
+webhook:
+  resources:
+    requests:
+      cpu: 20m
+      memory: 80Mi
+    limits:
+      memory: 100Mi
+
+cainjector:
+  enabled: true
+  resources:
+    requests:
+      cpu: 20m
+      memory: 80Mi
+    limits:
+      memory: 100Mi
+
+replicaCount: 1

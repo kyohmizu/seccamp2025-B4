@@ -1,0 +1,59 @@
+# https://github.com/bitnami/charts/blob/main/bitnami/keycloak/values.yaml
+
+replicaCount: 1
+service:
+  type: ClusterIP
+  port: 8080
+  httpsPort: 8443
+postgresql:
+  enabled: true
+  auth:
+    postgresPassword: keycloak
+    password: keycloak
+    username: keycloak
+    database: keycloak
+extraEnvVars:
+  - name: KEYCLOAK_ADMIN
+    value: admin
+  - name: KEYCLOAK_ADMIN_PASSWORD
+    value: admin
+  - name: KC_HOSTNAME
+    value: keycloak.seccamp.com
+  # - name: KC_HTTPS_PORT
+  #   value: "8443"
+  # - name: KC_HOSTNAME_URL
+  #   value: https://keycloak.seccamp.com
+  - name: KC_HOSTNAME_STRICT
+    value: "true"
+  - name: KC_HTTP_ENABLED
+    value: "true"
+  - name: PROXY_ADDRESS_FORWARDING
+    value: "true"
+  - name: KC_PROXY_ADDRESS_FORWARDING
+    value: "true"
+  - name: KC_PROXY
+    value: edge
+  - name: KC_HOSTNAME_STRICT_BACKCHANNEL
+    value: "true"
+  - name: KC_HOSTNAME_STRICT_HTTPS
+    value: "false"
+ingress:
+  enabled: true
+  hostname: keycloak.seccamp.com
+  ingressClassName: nginx
+  tls: true
+  annotations:
+    nginx.ingress.kubernetes.io/ssl-redirect: "true"
+    nginx.ingress.kubernetes.io/force-ssl-redirect: "true"
+    nginx.ingress.kubernetes.io/proxy-body-size: "0"
+    cert-manager.io/cluster-issuer: "root-ca-issuer"
+    nginx.ingress.kubernetes.io/configuration-snippet: |
+      proxy_set_header X-Forwarded-Proto $scheme;
+  extraTls:
+    - hosts:
+        - keycloak.seccamp.com
+      secretName: keycloak-tls
+# tls:
+#   enabled: true
+#   existingSecret: keycloak-tls
+proxyHeaders: "forwarded"

@@ -1,0 +1,22 @@
+expose:
+  type: ingress
+  tls:
+    enabled: true
+    certSource: secret
+    secret:
+      secretName: harbor-tls
+  ingress:
+    hosts:
+      core: harbor.seccamp.com
+    controller: default
+    className: nginx
+    annotations:
+      nginx.ingress.kubernetes.io/ssl-redirect: "true"
+      nginx.ingress.kubernetes.io/proxy-body-size: "0"
+      cert-manager.io/cluster-issuer: "root-ca-issuer"
+externalURL: https://harbor.seccamp.com
+harborAdminPassword: "harboradminpassword"
+database:
+  type: internal
+persistence:
+  enabled: true

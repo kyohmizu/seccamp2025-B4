@@ -1,0 +1,53 @@
+version: '3.8'
+services:
+  db:
+    image: mariadb:11.3
+    # image: cgr.dev/chainguard/mariadb:latest
+    container_name: seccamp-db
+    environment:
+      MYSQL_ROOT_PASSWORD: password
+      MYSQL_DATABASE: seccamp2025
+      MYSQL_USER: rootuser
+      MYSQL_PASSWORD: password
+    ports:
+      - "3306:3306"
+    volumes:
+      - ./db/init-english.sql:/docker-entrypoint-initdb.d/init.sql
+      # - ./db/init.sql:/docker-entrypoint-initdb.d/init.sql
+    restart: unless-stopped
+
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile.dev
+    container_name: seccamp-backend
+    environment:
+      DB_HOST: db
+      DB_PORT: 3306
+      DB_USER: rootuser
+      DB_PASSWORD: password
+      DB_NAME: seccamp2025
+    ports:
+      - "8000:8000"
+    depends_on:
+      - db
+    command: ["/bin/sh", "-c", "chmod +x ./wait-for-it.sh && ./wait-for-it.sh db:3306 -- ./backend"]
+    restart: unless-stopped
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile.dev
+    container_name: seccamp-frontend
+    ports:
+      - "3000:3000"
+    volumes:
+      - ./frontend:/app
+      - /app/node_modules
+    working_dir: /app
+    command: ["npm", "start"]
+    depends_on:
+      - backend
+    environment:
+      - REACT_APP_API_URL=http://localhost:8000
+    restart: unless-stopped

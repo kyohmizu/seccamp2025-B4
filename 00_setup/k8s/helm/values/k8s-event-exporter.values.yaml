@@ -1,0 +1,85 @@
+image:
+  repository: otel/opentelemetry-collector-k8s
+
+fullnameOverride: "kubernetes-events-exporter"
+
+mode: deployment
+replicaCount: 1
+
+presets:
+  kubernetesEvents:
+    enabled: true
+
+ports:
+  jaeger-compact:
+    enabled: false
+  jaeger-thrift:
+    enabled: false
+  jaeger-grpc:
+    enabled: false
+  zipkin:
+    enabled: false
+  metrics:
+    enabled: false
+
+resources:
+  requests:
+    cpu: 50m
+    memory: 60Mi
+  limits:
+    memory: 128Mi
+
+config:
+  exporters:
+    otlphttp:
+      headers:
+        X-Scope-OrgID: ${SCOPE_ORG_ID}
+      endpoint: http://loki:3100/otlp
+  processors:
+    transform/events:
+      error_mode: ignore
+      log_statements:
+      - context: log
+        statements:
+        - set(attributes["watch-type"], body["type"]) where IsMap(body) and body["type"] != nil
+        - merge_maps(attributes, body, "upsert") where IsMap(body) and body["object"] == nil
+        - merge_maps(attributes, body["object"], "upsert") where IsMap(body) and body["object"] != nil
+        - merge_maps(attributes, attributes["metadata"], "upsert") where IsMap(attributes["metadata"])
+        # Maps the name of the resource to the right k8s.* attribute
+        - set(attributes["k8s.pod.name"], attributes["regarding"]["name"]) where attributes["regarding"]["kind"] == "Pod"
+        - set(attributes["k8s.deployment.name"], attributes["regarding"]["name"]) where attributes["regarding"]["kind"] == "Deployment"
+        - set(attributes["k8s.statefulset.name"], attributes["regarding"]["name"]) where attributes["regarding"]["kind"] == "StatefulSet"
+        - set(attributes["k8s.daemonset.name"], attributes["regarding"]["name"]) where attributes["regarding"]["kind"] == "DaemonSet"
+        - set(attributes["k8s.job.name"], attributes["regarding"]["name"]) where attributes["regarding"]["kind"] == "Job"
+        - set(attributes["k8s.cronjob.name"], attributes["regarding"]["name"]) where attributes["regarding"]["kind"] == "CronJob"
+        - set(attributes["k8s.node.name"], attributes["regarding"]["name"]) where attributes["regarding"]["kind"] == "Node"
+        - set(attributes["k8s.namespace.name"], attributes["regarding"]["namespace"]) where attributes["regarding"]["kind"] != "Node"
+        # Converts event types to Otel log Severities
+        - set(severity_text, attributes["type"]) where attributes["type"] == "Normal" or attributes["type"] == "Warning"
+        - set(severity_number, SEVERITY_NUMBER_INFO) where attributes["type"] == "Normal"
+        - set(severity_number, SEVERITY_NUMBER_WARN) where attributes["type"] == "Warning"
+        # 不要なアトリビュートを削除
+        - delete_key(attributes, "managedFields") where attributes["managedFields"] != nil
+        - delete_key(attributes, "metadata") where attributes["metadata"] != nil
+        # Events の非推奨なフィールドを削除
+        - delete_key(attributes, "deprecatedCount") where attributes["deprecatedCount"] != nil
+        - delete_key(attributes, "deprecatedFirstTimestamp") where attributes["deprecatedFirstTimestamp"] != nil
+        - delete_key(attributes, "deprecatedLastTimestamp") where attributes["deprecatedLastTimestamp"] != nil
+        - delete_key(attributes, "deprecatedSource") where attributes["deprecatedSource"] != nil
+    resource:
+      attributes:
+      - action: upsert
+        key: service.name
+        value: kubernetes-events
+  service:
+    pipelines:
+      logs:
+        processors:
+        - memory_limiter
+        - resource
+        - transform/events
+        - batch
+        exporters:
+        - otlphttp
+      metrics: null
+      traces: null

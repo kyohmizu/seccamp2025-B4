@@ -1,0 +1,45 @@
+resources:
+  requests:
+    cpu: 100m
+    memory: 128Mi
+  limits:
+    memory: 128Mi
+
+deploymentStrategy:
+  type: Recreate
+
+persistence:
+  type: pvc
+  enabled: true
+  size: 3Gi
+
+grafana.ini:
+  server:
+    root_url: https://grafana.seccamp.com/
+
+ingress:
+  enabled: true
+  ingressClassName: nginx
+  annotations:
+    nginx.ingress.kubernetes.io/proxy-body-size: "0"
+    nginx.ingress.kubernetes.io/ssl-redirect: "true"
+    cert-manager.io/cluster-issuer: "root-ca-issuer"
+  path: /
+  pathType: Prefix
+  hosts:
+  - grafana.seccamp.com
+  tls:
+  - secretName: grafana-tls
+    hosts:
+    - grafana.seccamp.com
+
+initChownData:
+  enabled: false
+
+datasources:
+  datasources.yaml:
+    apiVersion: 1
+    datasources:
+      - name: Loki
+        type: loki
+        url: http://loki:3100

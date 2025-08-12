@@ -1,0 +1,15 @@
+# Crash log files
+crash.log
+crash.*.log
+
+# Application
+**/node_modules/
+backend/backend
+frontend/*.tsbuildinfo
+
+# Others
+.DS_Store
+*.log
+*.cache
+*.db
+.env

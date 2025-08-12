@@ -1,0 +1,26 @@
+nodeSelector:
+  kubernetes.io/hostname: kind-control-plane
+
+config:
+  clients:
+    - url: http://loki-gateway/loki/api/v1/push
+
+  snippets:
+    scrapeConfigs: |
+      - job_name: audit-logs
+        static_configs:
+          - targets:
+              - localhost
+            labels:
+              job: audit-logs
+              __path__: /var/log/kubernetes/**/*.log
+
+extraVolumes:
+  - name: kubernetes
+    hostPath:
+      path: /var/log/kubernetes
+
+extraVolumeMounts:
+  - name: kubernetes
+    mountPath: /var/log/kubernetes
+    readOnly: true

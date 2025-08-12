@@ -1,0 +1,75 @@
+nginx-ingress:
+  enabled: false
+prometheus:
+  install: false
+installCertmanager: false
+global:
+  kas:
+    enabled: false
+  hosts:
+    domain: seccamp.com
+    https: true
+  ingress:
+    annotations:
+      nginx.ingress.kubernetes.io/connection-proxy-header: "keep-alive"
+      nginx.ingress.kubernetes.io/ssl-redirect: "true"
+      cert-manager.io/cluster-issuer: "root-ca-issuer"
+    class: nginx
+    configureCertmanager: false
+    enabled: true
+    path: /
+    pathType: ImplementationSpecific
+    tls:
+      enabled: true
+      secretName: gitlab-tls
+  initialRootPassword:
+    secret: gitlab-initial-root-password
+    key: password
+minio:
+  ingress:
+    tls:
+      enabled: true
+      secretName: gitlab-minio-tls
+gitlab:
+  webservice:
+    enabled: true
+  gitlab-shell:
+    enabled: false
+registry:
+  enabled: false
+gitlab-runner:
+  install: true
+  rbac:
+    create: true
+  certsSecretName: gitlab-tls
+  runners:
+    privileged: true
+    locked: false
+    secret: "nonempty"
+    config: |
+      [[runners]]
+        tls-ca-file = "/home/gitlab-runner/.gitlab-runner/certs/ca.crt"
+        environment = ["HARBOR_USER=test", "HARBOR_PASSWORD=TestUser1234"]
+        [runners.kubernetes]
+        image = "ubuntu:22.04"
+        namespace = "gitlab"
+        service_account = "gitlab-gitlab-runner"
+        poll_timeout = 180
+        cpu_request = "100m"
+        memory_request = "128Mi"
+        helper_cpu_request = "50m"
+        helper_memory_request = "64Mi"
+        [runners.kubernetes.node_selector]
+          "kubernetes.io/os" = "linux"
+        [[runners.kubernetes.volumes.secret]]
+          name = "gitlab-tls"
+          mount_path = "/home/gitlab-runner/.gitlab-runner/certs/"
+          default_mode = 292
+          [runners.kubernetes.volumes.secret.items]
+            "ca.crt" = "ca.crt"
+      [[runners.kubernetes.volumes.empty_dir]]
+        name = "builds"
+        mount_path = "/builds"
+  podSecurityContext:
+    seccompProfile:
+      type: "RuntimeDefault"

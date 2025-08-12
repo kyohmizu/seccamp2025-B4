@@ -1,0 +1,32 @@
+global:
+  domain: argocd.seccamp.com
+server:
+  service:
+    type: ClusterIP
+  ingress:
+    annotations:
+      nginx.ingress.kubernetes.io/connection-proxy-header: "keep-alive"
+      nginx.ingress.kubernetes.io/ssl-redirect: "true"
+      cert-manager.io/cluster-issuer: "root-ca-issuer"
+    enabled: true
+    hostname: argocd.seccamp.com
+    ingressClassName: nginx
+    path: /
+    tls: true
+    extraTls:
+      - hosts:
+          - argocd.seccamp.com
+        secretName: argocd-tls
+certificate:
+  enabled: false
+controller:
+  replicas: 1
+repoServer:
+  replicas: 1
+applicationSet:
+  enabled: true
+configs:
+  cm:
+    admin.enabled: true
+  params:
+    server.insecure: "true"

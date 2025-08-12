@@ -1,0 +1,31 @@
+stages:
+  - build
+
+variables:
+  HARBOR_REGISTRY: harbor.seccamp.com
+  HARBOR_PROJECT: seccamp2025
+  IMAGE_NAME: $HARBOR_REGISTRY/$HARBOR_PROJECT/seccamp-frontend
+  DOCKER_CONFIG: /kaniko/.docker/
+
+before_script:
+  - mkdir -p /kaniko/.docker
+  - |
+    echo "{ \"auths\": { \"${HARBOR_REGISTRY}\": { \"auth\": \"$(echo -n ${HARBOR_USER}:${HARBOR_PASSWORD} | base64)\" } } }" > /kaniko/.docker/config.json
+
+build-image:
+  stage: build
+  image:
+    name: gcr.io/kaniko-project/executor:debug
+  script:
+    - /kaniko/executor --context $CI_PROJECT_DIR --dockerfile $CI_PROJECT_DIR/Dockerfile --destination $IMAGE_NAME:$CI_COMMIT_SHORT_SHA --skip-tls-verify --ignore-path /product_uuid
+  only:
+    - main
+
+build-image-tag:
+  stage: build
+  image:
+    name: gcr.io/kaniko-project/executor:debug
+  script:
+    - /kaniko/executor --context $CI_PROJECT_DIR --dockerfile $CI_PROJECT_DIR/Dockerfile --destination $IMAGE_NAME:$CI_COMMIT_REF_NAME --skip-tls-verify --ignore-path /product_uuid
+  only:
+    - tags
