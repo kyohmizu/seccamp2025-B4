@@ -17,6 +17,10 @@ repositories:
   url: https://grafana.github.io/helm-charts
 - name: open-telemetry
   url: https://open-telemetry.github.io/opentelemetry-helm-charts
+# - name: hashicorp
+#   url: https://helm.releases.hashicorp.com
+# - name: external-secrets
+#   url: https://charts.external-secrets.io
 
 releases:
 - name: cilium
@@ -159,3 +163,26 @@ releases:
   - values/promtail.values.yaml
   needs:
   - kube-system/cilium
+
+# - name: vault
+#   namespace: vault
+#   chart: hashicorp/vault
+#   version: 0.30.1
+#   labels:
+#     app: vault
+#   values:
+#   - values/vault.values.yaml
+#   needs:
+#   - kube-system/cilium
+
+# - name: external-secrets
+#   namespace: external-secrets-system
+#   chart: external-secrets/external-secrets
+#   version: 0.19.1
+#   labels:
+#     app: external-secrets
+#   values:
+#   - values/external-secrets.values.yaml
+#   needs:
+#   - kube-system/cilium
+#   - vault/vault

@@ -28,6 +28,7 @@ ${PRIVATE_IP} argocd.seccamp.com
 ${PRIVATE_IP} app.seccamp.com
 ${PRIVATE_IP} loki.seccamp.com
 ${PRIVATE_IP} grafana.seccamp.com
+${PRIVATE_IP} vault.seccamp.com
 EOF
 
 #-----------------------------
@@ -108,6 +109,13 @@ curl -O -L "https://github.com/sigstore/cosign/releases/download/v2.5.3/cosign-l
 mv cosign-linux-amd64 /usr/local/bin/cosign
 chmod +x /usr/local/bin/cosign
 
+# vault
+# https://developer.hashicorp.com/vault/install
+wget -O - https://apt.releases.hashicorp.com/gpg | sudo gpg --dearmor -o /usr/share/keyrings/hashicorp-archive-keyring.gpg
+echo "deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/hashicorp-archive-keyring.gpg] https://apt.releases.hashicorp.com $(grep -oP '(?<=UBUNTU_CODENAME=).*' /etc/os-release || lsb_release -cs) main" | sudo tee /etc/apt/sources.list.d/hashicorp.list
+apt update && apt install vault
+
+# krew plugins
 export PATH="${KREW_ROOT:-$HOME/.krew}/bin:$PATH"
 
 kubectl krew install neat

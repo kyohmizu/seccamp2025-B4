@@ -1,0 +1,63 @@
+global:
+  enabled: true
+  tlsDisable: true
+
+injector:
+  enabled: true
+  resources:
+    requests:
+      memory: "256Mi"
+      cpu: "250m"
+    limits:
+      memory: "512Mi"
+      cpu: "500m"
+
+server:
+  # 開発モードで起動
+  dev:
+    enabled: true
+    devRootToken: "root"
+  
+  ha:
+    enabled: false
+  
+  dataStorage:
+    enabled: true
+    size: 10Gi
+    storageClass: null
+    accessMode: ReadWriteOnce
+  
+  resources:
+    requests:
+      memory: "256Mi"
+      cpu: "250m"
+    limits:
+      memory: "1Gi"
+      cpu: "500m"
+  
+  service:
+    enabled: true
+    type: ClusterIP
+    port: 8200
+    targetPort: 8200
+  
+  ingress:
+    enabled: true
+    annotations:
+      nginx.ingress.kubernetes.io/ssl-redirect: "true"
+      cert-manager.io/cluster-issuer: "root-ca-issuer"
+    ingressClassName: nginx
+    hosts:
+    - host: vault.seccamp.com
+      paths:
+      - /
+    tls:
+    - secretName: vault-tls
+      hosts:
+      - vault.seccamp.com
+
+ui:
+  enabled: true
+  serviceType: ClusterIP
+  serviceNodePort: null
+  externalPort: 8200
