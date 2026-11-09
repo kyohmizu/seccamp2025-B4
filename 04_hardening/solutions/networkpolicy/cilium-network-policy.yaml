@@ -1,0 +1,58 @@
+# バックエンドのCilium Network Policy
+apiVersion: "cilium.io/v2"
+kind: CiliumNetworkPolicy
+metadata:
+  name: backend-l7-policy
+  namespace: seccamp-app
+spec:
+  endpointSelector:
+    matchLabels:
+      app: backend
+  ingress:
+  # フロントエンドからのHTTPリクエスト受信
+  - fromEndpoints:
+    toPorts:
+    - ports:
+      - port: "8000"
+        protocol: TCP
+      rules:
+        http:
+        # 受信を許可するAPIエンドポイント
+        - method: "GET"
+          path: "/admin/users"
+        - method: "GET" 
+          path: "/courses"
+        - method: "GET"
+          path: "/progress"
+        # パスパラメータを含む進捗取得エンドポイント (/progress/username)
+        - method: "GET"
+          path: "/progress/[^/]+"
+        - method: "POST"
+          path: "/login"
+        # コース参加エンドポイント (/courses/{id}/join)
+        - method: "POST"
+          path: "/courses/[0-9]+/join"
+  
+  egress:
+  # DNS解決を許可
+  - toEndpoints:
+    - matchLabels:
+        "k8s:io.kubernetes.pod.namespace": kube-system
+        k8s-app: kube-dns
+    toPorts:
+    - ports:
+      - port: "53"
+        protocol: UDP
+      rules:
+        dns:
+        - matchPattern: "db.seccamp-app.svc.cluster.local"
+        - matchPattern: "*.cluster.local"
+  
+  # データベースへのアクセス制御
+  - toEndpoints:
+    - matchLabels:
+        app: db
+    toPorts:
+    - ports:
+      - port: "3306"
+        protocol: TCP

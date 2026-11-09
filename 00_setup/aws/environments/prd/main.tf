@@ -9,10 +9,10 @@ module "ec2" {
   user_data     = file("${path.module}/userdata-slim.bash")
 
   instances = {
-    "00" = {
-      instance_type = "m5.2xlarge"
-      volume_size   = 100
-    }
+    # "00" = {
+    #   instance_type = "m5.2xlarge"
+    #   volume_size   = 100
+    # }
     "01" = {
       instance_type = "m5.2xlarge"
       volume_size   = 100

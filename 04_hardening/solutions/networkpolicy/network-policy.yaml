@@ -1,0 +1,110 @@
+# フロントエンドのネットワークポリシー
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: frontend-netpol
+  namespace: seccamp-app
+spec:
+  podSelector:
+    matchLabels:
+      app: frontend
+  policyTypes:
+  - Ingress
+  - Egress
+  ingress:
+  # 外部からのHTTPアクセスを許可
+  - from: []
+    ports:
+    - protocol: TCP
+      port: 80
+  egress:
+  # DNS解決を許可
+  - to: []
+    ports:
+    - protocol: UDP
+      port: 53
+  # バックエンドAPIへのアクセスを許可
+  - to:
+    - podSelector:
+        matchLabels:
+          app: backend
+    ports:
+    - protocol: TCP
+      port: 8000
+
+---
+# バックエンドのネットワークポリシー
+# apiVersion: networking.k8s.io/v1
+# kind: NetworkPolicy
+# metadata:
+#   name: backend-netpol
+#   namespace: seccamp-app
+# spec:
+#   podSelector:
+#     matchLabels:
+#       app: backend
+#   policyTypes:
+#   - Ingress
+#   - Egress
+#   ingress:
+#   # 外部からのHTTPアクセスを許可
+#   - from:
+#     ports:
+#     - protocol: TCP
+#       port: 8000
+#   egress:
+#   # DNS解決を許可
+#   - to: []
+#     ports:
+#     - protocol: UDP
+#       port: 53
+#   # データベースへのアクセスを許可
+#   - to:
+#     - podSelector:
+#         matchLabels:
+#           app: db
+#     ports:
+#     - protocol: TCP
+#       port: 3306
+
+---
+# データベースのネットワークポリシー
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: database-netpol
+  namespace: seccamp-app
+spec:
+  podSelector:
+    matchLabels:
+      app: db
+  policyTypes:
+  - Ingress
+  - Egress
+  ingress:
+  # バックエンドからのデータベース接続のみ許可
+  - from:
+    - podSelector:
+        matchLabels:
+          app: backend
+    ports:
+    - protocol: TCP
+      port: 3306
+  egress:
+  # DNS解決を許可
+  - to: []
+    ports:
+    - protocol: UDP
+      port: 53
+---
+# デフォルトでポッド間通信を拒否（デフォルトDeny）
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: default-deny-all
+  namespace: seccamp-app
+spec:
+  podSelector: {}
+  policyTypes:
+  - Ingress
+  - Egress
